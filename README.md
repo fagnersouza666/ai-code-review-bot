@@ -4,7 +4,7 @@ Bot automático que faz code review em Pull Requests usando LLM.
 
 **Custo:** ~$0.003 por PR  
 **Tempo:** Review completa em <30s
-fsdfdsfs
+
 ## Como funciona
 
 1. Abre um PR no repo
