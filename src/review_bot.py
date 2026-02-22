@@ -104,7 +104,19 @@ def call_llm(prompt: str) -> Tuple[str, float, int, int]:
         max_output_tokens=1500,
     )
 
+    # Extrai texto da resposta (com fallback manual)
     content = response.output_text
+
+    if not content:
+        # Fallback: extrai texto manualmente do array output
+        parts = []
+        for item in response.output:
+            if item.type == "message":
+                for block in item.content:
+                    if block.type == "output_text":
+                        parts.append(block.text)
+        content = "\n".join(parts)
+
     usage = response.usage
 
     tokens_in = usage.input_tokens
