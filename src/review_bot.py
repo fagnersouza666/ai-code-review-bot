@@ -6,21 +6,18 @@ Analisa PRs com LLM e comenta sugestões
 
 import os
 import sys
-import json
-import requests
+from openai import OpenAI
 from github import Github
-from typing import Dict, Tuple
-from datetime import datetime
+from typing import Tuple
 
 # Configuração
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-MODEL = os.getenv("MODEL", "openai/gpt-4.1-nano")
+MODEL = os.getenv("MODEL", "gpt-5-nano")
 
 # Preços por 1M tokens (atualizar conforme provider)
 PRICING = {
-    "openai/gpt-4.1-nano": {"input": 0.10, "output": 0.40},
-    "anthropic/claude-sonnet-4": {"input": 3.00, "output": 15.00},
+    "gpt-5-nano": {"input": 0.10, "output": 0.40},
 }
 
 
@@ -95,38 +92,29 @@ Provide the review in **Portuguese (PT-BR)**.
 
 def call_llm(prompt: str) -> Tuple[str, float, int, int]:
     """
-    Chama LLM via OpenRouter
+    Chama LLM via OpenAI Responses API
     Retorna: (resposta, custo, tokens_in, tokens_out)
     """
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    
-    payload = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.3,
-        "max_tokens": 1500,
-    }
-    
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    
-    data = response.json()
-    content = data["choices"][0]["message"]["content"]
-    usage = data["usage"]
-    
-    tokens_in = usage["prompt_tokens"]
-    tokens_out = usage["completion_tokens"]
-    
+    client = OpenAI(api_key=OPENAI_API_KEY)
+
+    response = client.responses.create(
+        model=MODEL,
+        input=prompt,
+        temperature=0.3,
+        max_output_tokens=1500,
+    )
+
+    content = response.output_text
+    usage = response.usage
+
+    tokens_in = usage.input_tokens
+    tokens_out = usage.output_tokens
+
     # Calcula custo
     pricing = PRICING.get(MODEL, {"input": 0.10, "output": 0.40})
     cost = (tokens_in / 1_000_000 * pricing["input"]) + \
            (tokens_out / 1_000_000 * pricing["output"])
-    
+
     return content, cost, tokens_in, tokens_out
 
 
@@ -153,8 +141,8 @@ def main():
         print("❌ Missing GITHUB_REPOSITORY or PR_NUMBER")
         sys.exit(1)
     
-    if not OPENROUTER_API_KEY or not GITHUB_TOKEN:
-        print("❌ Missing OPENROUTER_API_KEY or GITHUB_TOKEN")
+    if not OPENAI_API_KEY or not GITHUB_TOKEN:
+        print("❌ Missing OPENAI_API_KEY or GITHUB_TOKEN")
         sys.exit(1)
     
     print(f"🔍 Reviewing PR #{pr_number} in {repo_name}...")
