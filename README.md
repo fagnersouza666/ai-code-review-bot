@@ -1,7 +1,6 @@
 # AI Code Review Bot 🤖
 
-Bot automático que faz code review em Pull Requests usando IA (OpenAI `gpt-5-nano`).
-
+Bot automático que faz code review em Pull Requests usando LLM
 
 ## Como funciona
 
