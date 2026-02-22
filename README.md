@@ -1,7 +1,7 @@
 # AI Code Review Bot 🤖
 
 Bot automático que faz code review em Pull Requests usando LLM.
-
+fsdfsdfdsfsa
 **Custo:** ~$0.003 por PR  
 **Tempo:** Review completa em <30s
 
