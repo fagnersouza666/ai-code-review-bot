@@ -9,7 +9,7 @@ Bot automático que faz code review em Pull Requests usando LLM.
 
 1. Abre um PR no repo
 2. GitHub Action dispara automaticamente
-3. Bot analisa diff com gpt-4.1-nano
+3. Bot analisa diff com gpt-5-nano
 4. Comenta no PR com sugestões
 
 ## Features
@@ -29,7 +29,7 @@ Bot automático que faz code review em Pull Requests usando LLM.
 `Settings → Secrets and variables → Actions`:
 
 ```
-OPENROUTER_API_KEY=sk-or-v1-...
+OPENAI_API_KEY=sk-...
 GITHUB_TOKEN=ghp_... (auto-gerado pelo GitHub Actions)
 ```
 
@@ -45,13 +45,13 @@ O bot vai comentar automaticamente!
 
 Edite `.github/workflows/review.yml` para customizar:
 
-- Modelo LLM (default: `openai/gpt-4.1-nano`)
+- Modelo LLM (default: `gpt-5-nano`)
 - Temperatura (default: 0.3)
 - Max tokens (default: 1500)
 
 ## Custos
 
-**gpt-4.1-nano:**
+**gpt-5-nano:**
 - Input: $0.10/1M tokens
 - Output: $0.40/1M tokens
 
@@ -65,7 +65,7 @@ PRs maiores: ~$0.001-0.003
 ## Stack
 
 - Python 3.10+
-- OpenRouter API (acesso a 200+ modelos)
+- OpenAI API (SDK oficial)
 - PyGithub (GitHub API)
 - GitHub Actions (CI/CD)
 
@@ -96,7 +96,7 @@ cursor.execute(query, (user_id,))
 Considere usar `set()` em vez de `list` para lookups (O(1) vs O(n))
 
 ---
-*Powered by gpt-4.1-nano | @Fagner_Souza*
+*Powered by gpt-5-nano | @Fagner_Souza*
 ```
 
 ## Licença
