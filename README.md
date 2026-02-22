@@ -1,16 +1,30 @@
 # AI Code Review Bot 🤖
 
-Bot automático que faz code review em Pull Requests usando LLM.
-fsdfsdfdsfsa
-**Custo:** ~$0.003 por PR  
-**Tempo:** Review completa em <30s
+Bot automático que faz code review em Pull Requests usando IA (OpenAI `gpt-5-nano`).
+
 
 ## Como funciona
 
-1. Abre um PR no repo
-2. GitHub Action dispara automaticamente
-3. Bot analisa diff com gpt-5-nano
-4. Comenta no PR com sugestões
+```mermaid
+sequenceDiagram
+    participant Dev as Desenvolvedor
+    participant GH as GitHub
+    participant Bot as Review Bot
+    participant AI as OpenAI API
+
+    Dev->>GH: Abre/atualiza PR
+    GH->>Bot: Dispara GitHub Action
+    Bot->>GH: Busca diff do PR
+    Bot->>AI: Envia código para análise
+    AI-->>Bot: Retorna sugestões
+    Bot->>GH: Comenta no PR
+```
+
+1. Você abre (ou atualiza) um PR no repositório
+2. O GitHub Action dispara automaticamente
+3. O bot pega o diff e envia para o `gpt-5-nano` via OpenAI API
+4. O modelo analisa o código e retorna sugestões
+5. O bot posta a review como comentário no PR
 
 ## Features
 
@@ -18,63 +32,89 @@ fsdfsdfdsfsa
 ✅ Mostra custo real da review ($0.00X)  
 ✅ Sugere melhorias com exemplos de código  
 ✅ Identifica code smells e anti-patterns  
-✅ Zero config (só adicionar secrets)
+✅ Review em Português (PT-BR)  
+✅ Zero config — só adicionar 1 secret
 
-## Setup
+## Setup rápido
 
-### 1. Fork este repo
+### 1. Fork ou clone este repositório
 
-### 2. Adicionar secrets no GitHub
-
-`Settings → Secrets and variables → Actions`:
-
-```
-OPENAI_API_KEY=sk-...
-GITHUB_TOKEN=ghp_... (auto-gerado pelo GitHub Actions)
+```bash
+git clone https://github.com/fagnersouza666/ai-code-review-bot.git
 ```
 
-### 3. Ativar GitHub Actions
+### 2. Criar conta e chave na OpenAI
 
-`Actions → Enable workflows`
+1. Acesse [platform.openai.com](https://platform.openai.com)
+2. Crie uma conta (se ainda não tiver)
+3. Vá em **API Keys** → **Create new secret key**
+4. Copie a chave gerada (formato `sk-...`)
 
-### 4. Abrir um PR de teste
+### 3. Configurar secret no GitHub
 
-O bot vai comentar automaticamente!
+No seu repositório, vá em:
 
-## Configuração
+**Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret | Valor | Obrigatório |
+|--------|-------|:-----------:|
+| `OPENAI_API_KEY` | Sua chave da OpenAI (`sk-...`) | ✅ |
+
+> **Nota:** O `GITHUB_TOKEN` é gerado automaticamente pelo GitHub Actions, não precisa configurar.
+
+### 4. Ativar GitHub Actions
+
+Vá em **Actions → Enable workflows** (se necessário).
+
+### 5. Pronto! 🎉
+
+Abra um Pull Request e o bot comentará automaticamente com a review.
+
+## Teste local
+
+Crie um arquivo `.env` baseado no `.env.example`:
+
+```bash
+cp .env.example .env
+# Edite o .env com sua OPENAI_API_KEY
+```
+
+Execute o teste local:
+
+```bash
+pip install -r requirements.txt
+./test_local.sh
+```
+
+O script vai pedir o repositório e número do PR para analisar.
+
+## Configuração avançada
 
 Edite `.github/workflows/review.yml` para customizar:
 
-- Modelo LLM (default: `gpt-5-nano`)
-- Temperatura (default: 0.3)
-- Max tokens (default: 1500)
+| Parâmetro | Default | Descrição |
+|-----------|---------|-----------|
+| `MODEL` | `gpt-5-nano` | Modelo OpenAI a usar |
+| `max_output_tokens` | `16000` | Limite de tokens (inclui raciocínio) |
 
-## Custos
+> **Importante:** O `gpt-5-nano` é um modelo de raciocínio. Ele usa parte dos tokens para "pensar" antes de gerar a resposta, por isso o `max_output_tokens` precisa ser alto o suficiente.
 
-**gpt-5-nano:**
-- Input: $0.10/1M tokens
-- Output: $0.40/1M tokens
+## Custos estimados
 
-**Exemplo real (PR com 200 linhas):**
-- Input: ~2k tokens ($0.0002)
-- Output: ~800 tokens ($0.0003)
-- **Total: $0.0005**
+| Tipo de PR | Tokens (input) | Tokens (output) | Custo |
+|-----------|:---------:|:---------:|:------:|
+| PR pequeno (~50 linhas) | ~1k | ~1.5k | ~$0.0007 |
+| PR médio (~200 linhas) | ~2k | ~2k | ~$0.001 |
+| PR grande (~500 linhas) | ~5k | ~3k | ~$0.002 |
 
-PRs maiores: ~$0.001-0.003
+**Preços do gpt-5-nano:**
+- Input: $0.10 / 1M tokens
+- Output: $0.40 / 1M tokens
 
-## Stack
-
-- Python 3.10+
-- OpenAI API (SDK oficial)
-- PyGithub (GitHub API)
-- GitHub Actions (CI/CD)
-
-## Exemplo de Review
+## Exemplo de review
 
 ```markdown
 ## 🤖 AI Code Review
-
-**Custo desta review:** $0.0008
 
 ### ✅ Pontos positivos
 - Código bem estruturado
@@ -83,20 +123,41 @@ PRs maiores: ~$0.001-0.003
 ### ⚠️ Sugestões
 
 **1. Possível SQL Injection (linha 42)**
-```python
 # ❌ Evite
 query = f"SELECT * FROM users WHERE id = {user_id}"
 
 # ✅ Use
 query = "SELECT * FROM users WHERE id = %s"
 cursor.execute(query, (user_id,))
-```
 
 **2. Performance (linha 87)**
 Considere usar `set()` em vez de `list` para lookups (O(1) vs O(n))
 
 ---
+**Custo desta review:** $0.0008
 *Powered by gpt-5-nano | @Fagner_Souza*
+```
+
+## Stack
+
+- **Python 3.10+**
+- **OpenAI API** — SDK oficial com Responses API
+- **PyGithub** — Interação com GitHub API
+- **GitHub Actions** — CI/CD automatizado
+
+## Estrutura do projeto
+
+```
+ai-code-review-bot/
+├── src/
+│   └── review_bot.py        # Bot principal
+├── .github/
+│   └── workflows/
+│       └── review.yml        # GitHub Action
+├── .env.example              # Exemplo de variáveis de ambiente
+├── requirements.txt          # Dependências Python
+├── test_local.sh             # Script para teste local
+└── README.md
 ```
 
 ## Licença
