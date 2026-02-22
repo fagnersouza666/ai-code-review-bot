@@ -100,20 +100,24 @@ def call_llm(prompt: str) -> Tuple[str, float, int, int]:
     response = client.responses.create(
         model=MODEL,
         input=prompt,
-        max_output_tokens=1500,
+        max_output_tokens=16000,
     )
 
-    # Extrai texto da resposta (com fallback manual)
+    # Extrai texto da resposta
     content = response.output_text
 
     if not content:
-        # Fallback: extrai texto manualmente do array output
+        # Fallback para modelos de raciocínio: extrai summary do reasoning
         parts = []
         for item in response.output:
-            if item.type == "message":
+            if item.type == "message" and item.content:
                 for block in item.content:
-                    if block.type == "output_text":
+                    if hasattr(block, 'text'):
                         parts.append(block.text)
+            elif item.type == "reasoning" and hasattr(item, 'summary') and item.summary:
+                for s in item.summary:
+                    if hasattr(s, 'text'):
+                        parts.append(s.text)
         content = "\n".join(parts)
 
     usage = response.usage
