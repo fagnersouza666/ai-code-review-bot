@@ -100,7 +100,6 @@ def call_llm(prompt: str) -> Tuple[str, float, int, int]:
     response = client.responses.create(
         model=MODEL,
         input=prompt,
-        temperature=0.3,
         max_output_tokens=1500,
     )
 
