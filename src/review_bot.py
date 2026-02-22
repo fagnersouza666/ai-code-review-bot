@@ -103,6 +103,17 @@ def call_llm(prompt: str) -> Tuple[str, float, int, int]:
         max_output_tokens=1500,
     )
 
+    # DEBUG: ver estrutura da resposta
+    print(f"🔍 DEBUG output_text: '{response.output_text[:200] if response.output_text else 'EMPTY'}'")
+    print(f"🔍 DEBUG output type: {type(response.output)}")
+    print(f"🔍 DEBUG output len: {len(response.output)}")
+    for i, item in enumerate(response.output):
+        print(f"🔍 DEBUG output[{i}]: type={item.type}, keys={dir(item)}")
+        if hasattr(item, 'content'):
+            print(f"🔍 DEBUG output[{i}].content: {item.content}")
+        if hasattr(item, 'text'):
+            print(f"🔍 DEBUG output[{i}].text: '{str(item.text)[:200]}'")
+
     # Extrai texto da resposta (com fallback manual)
     content = response.output_text
 
